@@ -593,12 +593,17 @@ bool AsyncSSLSocket::isServerNameMatch() const {
     return false;
   }
 
+#ifdef OPENSSL_IS_BORINGSSL
+  auto tlsextHostname = SSL_get_servername(ssl_.get(), TLSEXT_NAMETYPE_host_name);
+#else
   SSL_SESSION* ss = SSL_get_session(ssl_.get());
   if (!ss) {
     return false;
   }
 
   auto tlsextHostname = SSL_SESSION_get0_hostname(ss);
+#endif
+
   return (tlsextHostname && !tlsextHostname_.compare(tlsextHostname));
 }
 
